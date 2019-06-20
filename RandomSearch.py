@@ -34,7 +34,7 @@ def fitness_evaluation(solution):
     NN = SimpleNeuronalNetwork(network_size, sigmoid_activation, sigmoid_derivation, mse)
     NN2 = SimpleNeuronalNetwork((10,10), sigmoid_activation, sigmoid_derivation, mse)
 
-    for s in range(2000):
+    for s in range(1500):
         NN.get_output(x_train[s, :])
         adapt_weights(func, NN)
 
