@@ -13,7 +13,7 @@ from multiprocessing import Pool
 
 num_cores = 4
 
-network_size = (784, 20, 20)
+network_size = (784, 20, 10)
 mse = MeanSquaredCost()
 
 data = load_data()
@@ -32,13 +32,13 @@ def get_function(parameter):
 def fitness_evaluation(solution):
     func = get_function(solution)        
     NN = SimpleNeuronalNetwork(network_size, sigmoid_activation, sigmoid_derivation, mse)
-    NN2 = SimpleNeuronalNetwork((20,10), sigmoid_activation, sigmoid_derivation, mse)
+    NN2 = SimpleNeuronalNetwork((10,10), sigmoid_activation, sigmoid_derivation, mse)
 
     for s in range(2000):
         NN.get_output(x_train[s, :])
         adapt_weights(func, NN)
 
-    for s in range(20000):
+    for s in range(10000):
         embedding = NN.get_output(x_train[s])
         NN2.train_network(embedding, y_train[s])
 
