@@ -6,6 +6,7 @@ import keras
 from keras import utils
 from keras.datasets import fashion_mnist
 import numpy as np
+import random
 
 num_classes = 10
 img_rows = 28
@@ -33,6 +34,9 @@ def prepare_data_for_keras(data):
     y_train = keras.utils.to_categorical(y_train, num_classes)
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
+    shuffle_data((x_train, y_train))
+    shuffle_data((x_test, y_test))
+
     return (x_train, y_train), (x_test, y_test)
 
 """
@@ -53,4 +57,20 @@ def prepare_data_for_tooc(data):
     y_train = keras.utils.to_categorical(y_train, num_classes)
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
+    shuffle_data((x_train, y_train))
+    shuffle_data((x_test, y_test))
+
     return (x_train, y_train), (x_test, y_test)
+
+"""
+Shuffles x_data and y_data accordingly.
+"""
+def shuffle_data(data):
+    x_data, y_data = data
+
+    seed = random.randint(0, 1000)
+
+    np.random.seed(seed)
+    np.random.shuffle(x_data)
+    np.random.seed(seed)
+    np.random.shuffle(y_data)
