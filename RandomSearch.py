@@ -30,8 +30,6 @@ def get_function(parameter):
 
 
 def fitness_evaluation(solution):
-    global solutions_tested
-
     func = get_function(solution)        
     NN = SimpleNeuronalNetwork(network_size, sigmoid_activation, sigmoid_derivation, mse)
     NN2 = SimpleNeuronalNetwork((20,10), sigmoid_activation, sigmoid_derivation, mse)
