@@ -1,3 +1,4 @@
+from multiprocessing import Pool
 from GeneralNN import GeneralNeuronalNetwork
 from helper.activations import sigmoid_activation
 from helper.losses import MeanSquaredCost
@@ -5,18 +6,17 @@ from data.fashion_MNIST import load_data, prepare_data_for_tooc
 import numpy as np
 import random
 import os
-from multiprocessing import Pool
 import warnings
 from timeit import default_timer as timer
 
 np.seterr(all='warn')
 warnings.filterwarnings('error')
-num_cores = 2
+num_cores = 4
 
-network_size = (784, 10, 10, 10)
+network_size = (784, 50, 20, 10)
 mse = MeanSquaredCost()
 
-batch_size = 5000
+batch_size = 3000
 epochs = 5
 threshold = 0.15
 
@@ -69,7 +69,7 @@ def fitness_evaluation(solution):
                 break
             NN.reset_accuracy()
 
-    with open("logs/abs " + str(os.getpid()) + ".csv", "a+") as file:
+    with open("logs/784-50-20-10 " + str(os.getpid()) + ".csv", "a+") as file:
         file.write(";".join(map(str,[performance_lr] + performance_param + [weight_lr] + weight_param + accuracy_history)) + "\n")
 
     print(accuracy_history[-1])
