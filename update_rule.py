@@ -12,29 +12,29 @@ class UpdateRule():
     # number of summands of the performance-update rule
     NUM_PERFORMANCE_SUMMANDS = 7
 
-    # variables of the weight-update-rule
+    # variables of the weight-update rule
     PERFORMANCE_VARIABLES = ['y',
-                        'p_out',
-                        'y^2',
-                        'p_out^2',
-                        'y*p_out',
-                        'y^2*p_out',
-                        'y*p_out^2']
+                            'p_out',
+                            'y^2',
+                            'p_out^2',
+                            'y*p_out',
+                            'y^2*p_out',
+                            'y*p_out^2']
     # variables of the performance-update rule
     WEIGHT_VARIABLES = ['p1',
-                             'p2',
-                             'y1',
-                             'y2',
-                             'p1*y1',
-                             'p2*y2',
-                             'p1*p2',
-                             'p1*y2',
-                             'p2*y1',
-                             'y1*y2']
+                        'p2',
+                        'y1',
+                        'y2',
+                        'p1*y1',
+                        'p2*y2',
+                        'p1*p2',
+                        'p1*y2',
+                        'p2*y1',
+                        'y1*y2']    
 
     def __init__(self):
-        self.performance_lr = 0
-        self.weight_lr = 0
+        self.performance_lr = UpdateRule.generate_random_lr()
+        self.weight_lr = UpdateRule.generate_random_lr()
 
         self.performance_coefficients = [0] * self.NUM_PERFORMANCE_SUMMANDS
         self.weight_coefficients = [0] * self.NUM_WEIGHT_SUMMANDS      
@@ -49,8 +49,8 @@ class UpdateRule():
     def generate_random_rule(cls):
         rule = UpdateRule()
 
-        rule.performance_lr = random() ** 2
-        rule.weight_lr = random() ** 2
+        rule.performance_lr = cls.generate_random_lr()
+        rule.weight_lr = cls.generate_random_lr()
 
         num_chosen_performance_summands = randint(1, CN.MAX_NUM_OF_SUMMANDS)
         num_chosen_weight_summands = randint(1, CN.MAX_NUM_OF_SUMMANDS)
@@ -88,8 +88,8 @@ class UpdateRule():
                         for v in range(CN.NUM_VARIATIONS_PER_RULE):
                             rule = UpdateRule()
                     
-                            rule.performance_lr = 10 ** (-random() * 2)
-                            rule.weight_lr = 10 ** (-random() * 2)
+                            rule.performance_lr = cls.generate_random_lr()
+                            rule.weight_lr = cls.generate_random_lr()
 
                             for s, c in zip(chosen_perf_summands, perf_coefficients):
                                 rule.performance_coefficients[s] = c
@@ -98,6 +98,10 @@ class UpdateRule():
                                 rule.weight_coefficients[s] = c
 
                             yield rule
+
+    @classmethod
+    def generate_random_lr(cls):
+        return random() * 10 ** (-random())
 
     """
     Returns the coefficient of the given variable.

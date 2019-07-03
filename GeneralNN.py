@@ -32,7 +32,9 @@ class GeneralNeuralNetwork():
     def save(self, path):
         np.save(path, self.weights)
 
-    def train_network(self, input_values, correct_output_values):      
+    def train_network(self, input_values, correct_output_values): 
+        self.samples_trained += 1
+
         # feed-forward pass  
         self.get_output(input_values)
 
@@ -40,8 +42,7 @@ class GeneralNeuralNetwork():
         output_performances = self.feedback_function(self.neurons[-1], correct_output_values)
         self.backpropagate_neuron_performances(output_performances) 
         self.adapt_weights()
-
-        self.samples_trained += 1
+        
         if np.argmax(self.neurons[-1]) == np.argmax(correct_output_values):
             self.samples_correctly_classified += 1
 
@@ -70,7 +71,7 @@ class GeneralNeuralNetwork():
         for l in range(self.num_layers - 2, -1, -1):
             # the weighted sum of the performances of the neurons in the next layer
             p_out = np.dot(self.weights[l], self.performances[l+1])
-            
+           
             self.performances[l] *= 0
 
             if rule.is_set('y'):
@@ -110,13 +111,13 @@ class GeneralNeuralNetwork():
             if rule.is_set('p2*y2'):
                 self.weights[l] += lr * rule.get('p2*y2') * self.performances[l+1] * self.neurons[l+1]
             if rule.is_set('p1*p2'):
-                self.weights[l] += lr * rule.get('p1*p2') * np.dot(self.performances[l][np.newaxis].T, self.performances[l+1][np.newaxis])
+                self.weights[l] += lr * rule.get('p1*p2') * self.performances[l][np.newaxis].T * self.performances[l+1]
             if rule.is_set('p1*y2'):
-                self.weights[l] += lr * rule.get('p1*y2') * np.dot(self.performances[l][np.newaxis].T, self.neurons[l+1][np.newaxis])
+                self.weights[l] += lr * rule.get('p1*y2') * self.performances[l][np.newaxis].T * self.neurons[l+1]
             if rule.is_set('p2*y1'):
-                self.weights[l] += lr * rule.get('p2*y1') * np.dot(self.neurons[l][np.newaxis].T, self.performances[l+1][np.newaxis])
+                self.weights[l] += lr * rule.get('p2*y1') * self.neurons[l][np.newaxis].T * self.performances[l+1]
             if rule.is_set('y1*y2'):
-                self.weights[l] += lr * rule.get('y1*y2') * np.dot(self.neurons[l][np.newaxis].T, self.neurons[l+1][np.newaxis])
+                self.weights[l] += lr * rule.get('y1*y2') * self.neurons[l][np.newaxis].T * self.neurons[l+1]
 
     def reset_accuracy(self):
         self.samples_trained = 0

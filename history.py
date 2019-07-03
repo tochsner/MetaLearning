@@ -19,8 +19,9 @@ class LoggingThread(Thread):
 
             self.ended = False
         
-        def run(self):
-            history = []
+        def run(self):      
+            with open(self.path, 'wb') as file:
+                pass
 
             max_accuracy = 0
         
@@ -28,35 +29,41 @@ class LoggingThread(Thread):
             seconds_per_element = 0
             minutes_left = 0
 
+            elements_processed = 0
+
             while True:                                
                 while self.queue.empty():
-                    sleep(5)
+                    sleep(60)
+
+                history = []
                 
                 while not self.queue.empty():
                     history_item = self.queue.get()
                     history.append(history_item)   
 
+                    elements_processed += 1
+
                     accuracy = max(history_item.accuracy_history)
                     max_accuracy = max(max_accuracy, accuracy)                 
 
-                    print('{:0>5d}'.format(len(history)),
+                    print('{:0>5d}'.format(elements_processed),
                             '/', '{:0>5d}'.format(self.total_num_items),
                             'Accuracy:',
                             '{:.2f}'.format(accuracy), 
                             '(Max:', '{:.2f}'.format(max_accuracy), ')',
                             '; Time per Rule:',
-                            '{:.1f}'.format(seconds_per_element),
+                            '{:.2f}'.format(seconds_per_element),
                             '; Time Left:',
                             '{:.1f}'.format(minutes_left), 'min',
                             '; Used Rule:',
                             str(history_item.rule))
                 
                 time = timer()
-                seconds_per_element = (time - start_time) / len(history)
-                minutes_left = (self.total_num_items - len(history)) * seconds_per_element / 60
+                seconds_per_element = (time - start_time) / elements_processed
+                minutes_left = (self.total_num_items - elements_processed) * seconds_per_element / 60
 
                 try:
-                    with open(self.path, 'wb') as file:
+                    with open(self.path, 'ab') as file:
                             pickle.dump(history, file)
                 except:
                     pass

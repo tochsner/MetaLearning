@@ -5,6 +5,7 @@ from os import makedirs, path
 from shutil import copyfile
 import warnings
 from time import sleep
+from timeit import default_timer as Timer
 
 import parameter as CN
 from data.fashion_MNIST import load_data, prepare_data_for_tooc
@@ -13,8 +14,8 @@ from update_rule import UpdateRule
 from history import HistoryItem, HistoryManager
 from helper.activations import sigmoid_activation
 
-np.seterr(all='warn')
-warnings.filterwarnings('error')
+np.seterr(all='raise')
+np.seterr(under='ignore')
 
 def evaluate_update_rule(parameter):
     queue, rule, x_train, y_train = parameter 
@@ -28,10 +29,10 @@ def evaluate_update_rule(parameter):
             for s in range(CN.BATCH_SIZE):
                 try:
                     NN.train_network(x_train[b * CN.BATCH_SIZE + s], y_train[b * CN.BATCH_SIZE + s])
-                except Warning:                
-                    if NN.has_invalid_values and NN.get_accuracy() < 0.15: 
+                except FloatingPointError:                                          
+                    if NN.has_invalid_values(): 
                         history_item = HistoryItem(rule, [0], True)                    
-                        queue.put(history_item)
+                        queue.put(history_item)                        
                         return 0
 
             accuracy_history += [NN.get_accuracy()]
@@ -45,6 +46,7 @@ def evaluate_update_rule(parameter):
 
     history_item = HistoryItem(rule, accuracy_history, False)
     queue.put(history_item)
+
     return max(accuracy_history)
 
 if __name__ == '__main__':
