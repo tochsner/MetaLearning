@@ -2,7 +2,7 @@
 Stores all the parameters in a centralized file.
 """
 
-EXPERIMENT_NAME = '030719 W2P3'
+EXPERIMENT_NAME = '110719 W3P1'
 
 """
 Parameters describing the general model used to update the weights.
@@ -13,8 +13,8 @@ OUTPUT_FITNESS_FUNCTION = lambda y, y_target: y - y_target
 MAX_NUM_OF_SUMMANDS = 4
 
 # number of chosen summands if the all possible rules are tested
-NUM_OF_CHOSEN_WEIGHT_SUMMANDS = 2
-NUM_OF_CHOSEN_PERFORMANCE_SUMMANDS = 3
+NUM_OF_CHOSEN_WEIGHT_SUMMANDS = 3
+NUM_OF_CHOSEN_PERFORMANCE_SUMMANDS = 1
 
 # number of variations (regarding weight rule lr and performance rule lr)
 # per rule if all possible rules are tested
