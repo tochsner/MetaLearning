@@ -1,82 +1,42 @@
-from multiprocessing.pool import Pool
-from multiprocessing import SimpleQueue, Manager
-import numpy as np
+"""
+Tries all possible update rules according to the parameters specified
+in parameter.py. As evaluation, the FashionMNIST dataset is used.
+
+The search runs in parallel, with the results saved in a shared Queue
+and stored periodically on a disc by the history object.
+"""
+
 from os import makedirs, path
 from shutil import copyfile
-import warnings
-from time import sleep
-from timeit import default_timer as Timer
+from multiprocessing import Manager
+from multiprocessing.pool import Pool
 
-import parameter as CN
-from data.fashion_MNIST import load_data, prepare_data_for_tooc
-from GeneralNN import GeneralNeuralNetwork
-from update_rule import UpdateRule
-from history import HistoryItem, HistoryManager
-from helper.activations import sigmoid_activation
+from helper.history import HistoryManager
 
-np.seterr(all='raise')
-np.seterr(under='ignore')
-
-def evaluate_update_rule(parameter):
-    queue, rule, x_train, y_train = parameter 
-
-    NN = GeneralNeuralNetwork(CN.NETWORK_SIZE, sigmoid_activation, CN.OUTPUT_FITNESS_FUNCTION, rule)
-
-    accuracy_history = []
-
-    for e in range(CN.MAX_EPOCHS):
-        for b in range(x_train.shape[0] // CN.BATCH_SIZE):
-            for s in range(CN.BATCH_SIZE):
-                try:
-                    NN.train_network(x_train[b * CN.BATCH_SIZE + s], y_train[b * CN.BATCH_SIZE + s])
-                except FloatingPointError:                                          
-                    if NN.has_invalid_values(): 
-                        history_item = HistoryItem(rule, [0], True)                    
-                        queue.put(history_item)                        
-                        return 0
-
-            accuracy_history += [NN.get_accuracy()]
-
-            if accuracy_history[-1] < CN.ACCURACY_THRESHOLD:                
-                history_item = HistoryItem(rule, accuracy_history, False)
-                queue.put(history_item)
-                return max(accuracy_history)
-
-            NN.reset_accuracy()
-
-    history_item = HistoryItem(rule, accuracy_history, False)
-    queue.put(history_item)
-
-    return max(accuracy_history)
+import searchHelper.search_parameter as SP
+from searchHelper.fashion_MNIST_evaluation import get_evaluator
+from searchHelper.rule_generation import generate_missing_rules, calculate_num_of_rules
 
 if __name__ == '__main__':
-    DIRECTORY_PATH = 'logs/' + CN.EXPERIMENT_NAME
-    LOG_PATH = DIRECTORY_PATH + '/logs.pkl'
-    PARAMETER_PATH = DIRECTORY_PATH + '/parameter.py'
+    if not path.exists(SP.DIRECTORY_PATH):  # TODO
+        makedirs(SP.DIRECTORY_PATH)
 
-    if not path.exists(DIRECTORY_PATH):
-        makedirs(DIRECTORY_PATH)
+    copyfile('searchHelper/search_parameter.py', SP.PARAMETER_PATH)
 
-    copyfile('parameter.py', PARAMETER_PATH)
-
-    data = load_data()
-    (x_train, y_train), (x_test, y_test) = prepare_data_for_tooc(data)
-    
+    pool = Pool(processes=SP.NUM_OF_CORES_USED)
     manager = Manager()
     queue = manager.Queue()
-    
-    all_rules = list(UpdateRule.generate_all_rules())
-    all_solutions = [(queue, rule, x_train, y_train) for rule in all_rules]
 
-    history_manager = HistoryManager(queue, LOG_PATH, len(all_solutions))    
+    all_rules = generate_missing_rules()
+    num_rules = calculate_num_of_rules()
 
-    print('Evaluate', len(all_rules), 'rules')
+    with HistoryManager(queue, SP.LOG_PATH, num_rules) as history_manager:
+        print(f'Evaluate {num_rules} rules.')
 
-    pool = Pool(processes=CN.NUM_OF_CORES)
-    results = pool.map(evaluate_update_rule, all_solutions)
+        rule_evaluator = get_evaluator(queue)
+        achieved_accuracies = pool.map(rule_evaluator, all_rules)
 
-    history_manager.end()
-
-    index_list = range(len(results))    
-    print('Finished. Maximum achieved accuracy ', max(results), 'with', 
-            all_solutions[max(index_list, key=lambda x: results[x])][1])
+        best_accuracy = max(achieved_accuracies)
+        index_list = range(num_rules)
+        best_rule = all_rules[max(index_list, key=lambda x: achieved_accuracies[x])]
+        print(f'Finished. Maximum achieved accuracy {best_accuracy} with {best_rule}.')
