@@ -1,6 +1,7 @@
 from benchmarkHelper.run_benchmark import evaluate
 from update_rule import UpdateRule
 from data.fashion_MNIST import load_data, prepare_data_for_tooc
+from general_NN import GeneralNeuralNetwork
 import benchmarkHelper.benchmark_parameter as BCN
 import model_parameter as MCN
 
